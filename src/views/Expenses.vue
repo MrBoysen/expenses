@@ -8,7 +8,7 @@
 			type="text"
 			placeholder="Search">
 		</div>
-	</div>
+	</div> 
 		<h1>Expenses</h1>
 		<form
 		@submit.prevent="addExpense"

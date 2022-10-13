@@ -5,7 +5,7 @@ import { async } from '@firebase/util'
 const router = createRouter({
     history: createWebHistory(),
     routes: [
-        { 
+        {
             path: '/', 
             component: () => import('../views/Home.vue'),
             meta: {

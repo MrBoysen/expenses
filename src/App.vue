@@ -26,6 +26,7 @@
 <script setup>
 	// Imports
 	import { ref, onMounted } from 'vue'
+	import { db } from '@/firebase'
 	import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 	import { useRouter, useRoute } from 'vue-router'
 
@@ -51,6 +52,8 @@
 			router.push('/signin')
 	})
 	}
+
+
 </script>
 
 <style>
