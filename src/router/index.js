@@ -12,6 +12,7 @@ const router = createRouter({
                 requiresAuth: true,
             }
         },
+        { path: '/expenses', component: () => import('../views/Expenses.vue')},
         { path: '/register', component: () => import('../views/Register.vue')},
         { path: '/signin', component: () => import('../views/SignIn.vue')},
         { path: '/settings', component: () => import('../views/Settings.vue')}
@@ -35,7 +36,7 @@ router.beforeEach(async (to, from, next) => {
         if (await getCurrentUser()) {
             next()
         } else {
-            alert("You don't have access!")
+            // alert("You don't have access!")
             next('/signin')
         }
     } else {

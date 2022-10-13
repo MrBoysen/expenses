@@ -44,7 +44,7 @@ const logIn = () => {
     signInWithEmailAndPassword(getAuth(), email.value, password.value)
     .then((data) => {
         console.log('Successfully logged in!')
-        router.push('/')
+        router.push('/expenses')
     })
     .catch((error) => {
         console.log(error.code)
@@ -62,7 +62,6 @@ const logIn = () => {
                 errMsg.value = 'Email or password was incorrect'
                 break
         }
-        // alert(errMsg.value)
     })
 }
 
