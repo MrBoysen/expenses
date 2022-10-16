@@ -1,14 +1,17 @@
 <template>
 	<div class="expenses-app">
-	<div class="columns">
+	<form 
+	class="columns"
+	@submit.prevent=""
+	>
 	<!-- Add filter to this input field -->
-		<div class="column">
+		<div class="column is-half is-offset-one-quarter">
 			<input
-			class="input field mb-3 column is-half is-offset-one-quarter"
+			class="input field"
 			type="text"
-			placeholder="Search">
+			placeholder="Search (Not active yet)">
 		</div>
-	</div> 
+	</form> 
 		<h1>Expenses</h1>
 		<form
 		@submit.prevent="addExpense"
@@ -41,14 +44,17 @@
 	<div v-for="expense in expenses" :key="expense.id" class="card mb-3">
 		<div class="card-content level">
 			<div class="content level-item">
-				<div class="column">
+				<div class="column" @click="updateExpense(expense.id)">
 					{{ expense.company }}
+					<input v-model="expense.company" v-if="true" type="text">
 				</div>
 				<div class="column">
 					{{ expense.type }}
+					<input type="text">
 				</div>
 				<div class="column">
-					{{ expense.amount }}
+					{{ expense.amount }} Kr
+					<input type="text">
 				</div>
 				<div class="column has-text-right">
 					<button
@@ -63,7 +69,7 @@
 
 <script setup>
 	import { ref, onMounted } from 'vue'
-	import { collection, doc, onSnapshot, addDoc, deleteDoc } from 'firebase/firestore'
+	import { collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 	import { db } from '@/firebase'
 
 	// Firebase refs
@@ -111,6 +117,22 @@
 	const deleteExpense = id => {
 		deleteDoc(doc(expensesCollectionRef, id))
 	}
+
+	const startEditing = () => {
+		
+	}
+	
+	const endEditing = () => {
+
+	}
+
+	const updateExpense = (id) => {
+		console.log(expenses);
+		updateDoc(doc(expensesCollectionRef, id), {
+			type: id
+		})
+	}
+	
 </script>
 
 
