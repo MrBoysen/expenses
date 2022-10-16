@@ -44,17 +44,17 @@
 	<div v-for="expense in expenses" :key="expense.id" class="card mb-3">
 		<div class="card-content level">
 			<div class="content level-item">
-				<div class="column" @click="updateExpense(expense.id)">
+				<div class="column" @click="hiddenCompany = !hiddenCompany">
 					{{ expense.company }}
-					<input v-model="expense.company" v-if="true" type="text">
+					<input v-if="!hiddenCompany" v-model="expense.company" type="text"/>
 				</div>
-				<div class="column">
+				<div class="column" @click="hiddenType = !hiddenType">
 					{{ expense.type }}
-					<input type="text">
+					<input v-if="!hiddenType" v-model="expense.type" type="text">
 				</div>
-				<div class="column">
+				<div class="column" @click="hiddenAmount = !hiddenAmount">
 					{{ expense.amount }} Kr
-					<input type="text">
+					<input v-if="!hiddenAmount" v-model="expense.amount" type="text">
 				</div>
 				<div class="column has-text-right">
 					<button
@@ -68,13 +68,17 @@
 </template>
 
 <script setup>
-	import { ref, onMounted } from 'vue'
+	import { ref, onMounted, onBeforeMount } from 'vue'
 	import { collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 	import { db } from '@/firebase'
 
 	// Firebase refs
 	const expensesCollectionRef = collection(db, 'expenses')
 	
+	let hiddenCompany = ref(true)
+	let hiddenType = ref(true)
+	let hiddenAmount = ref(true)
+
 	// Expenses
 	const expenses = ref([])
 

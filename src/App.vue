@@ -29,7 +29,7 @@
 	import { db } from '@/firebase'
 	import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 	import { useRouter, useRoute } from 'vue-router'
-
+	
 	const router = useRouter()
 	const route = useRoute()
 
