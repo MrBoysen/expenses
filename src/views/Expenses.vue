@@ -1,6 +1,6 @@
 <template>
 	<div class="expenses-app">
-	<form 
+	<form
 	class="columns"
 	@submit.prevent=""
 	>
@@ -12,8 +12,9 @@
 			placeholder="Search (Not active yet)">
 		</div>
 	</form> 
-		<h1>Expenses</h1>
+		<h1  @click="hiddenExpenses = !hiddenExpenses">Expenses</h1>
 		<form
+		v-if="!hiddenExpenses"
 		@submit.prevent="addExpense"
 		class="columns">
 			<div class="column is-half is-offset-one-quarter">
@@ -44,19 +45,28 @@
 	<div v-for="expense in expenses" :key="expense.id" class="card mb-3">
 		<div class="card-content level">
 			<div class="content level-item">
-				<div class="column" @click="hiddenCompany = !hiddenCompany">
+				<div class="column" v-if="!expense.isEdit">
 					{{ expense.company }}
-					<input v-if="!hiddenCompany" v-model="expense.company" type="text"/>
 				</div>
-				<div class="column" @click="hiddenType = !hiddenType">
+				<div class="column" v-else>
+					<input v-model="expense.company" type="text"/>
+				</div>
+				<div class="column" v-if="!expense.isEdit">
 					{{ expense.type }}
-					<input v-if="!hiddenType" v-model="expense.type" type="text">
 				</div>
-				<div class="column" @click="hiddenAmount = !hiddenAmount">
+				<div class="column" v-else>
+					<input v-model="expense.type" type="text">
+				</div>
+				<div class="column" v-if="!expense.isEdit">
 					{{ expense.amount }} Kr
-					<input v-if="!hiddenAmount" v-model="expense.amount" type="text">
+				</div>
+				<div class="column" v-else>
+					<input v-model="expense.amount" type="text">
 				</div>
 				<div class="column has-text-right">
+					<button
+					@click="editExpense(expense, id)"
+					class="button is-info mr-2">&dash;</button>
 					<button
 					@click="deleteExpense(expense.id)"
 					class="button is-danger">&cross;</button>
@@ -68,22 +78,19 @@
 </template>
 
 <script setup>
-	import { ref, onMounted, onBeforeMount } from 'vue'
+	import { ref, onMounted } from 'vue'
 	import { collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 	import { db } from '@/firebase'
 
 	// Firebase refs
 	const expensesCollectionRef = collection(db, 'expenses')
 	
-	let hiddenCompany = ref(true)
-	let hiddenType = ref(true)
-	let hiddenAmount = ref(true)
+	const hiddenExpenses = ref(true)
 
 	// Expenses
 	const expenses = ref([])
 
 	// Get Expenses
-
 	onMounted(() => {
 		onSnapshot(expensesCollectionRef, (querySnapshot) => {
 			const fbExpenses = []
@@ -92,7 +99,8 @@
 					id: doc.id,
 					company: doc.data().company,
 					type: doc.data().type,
-					amount: doc.data().amount
+					amount: doc.data().amount,
+					isEdit: doc.data().isEdit
 				}
 				fbExpenses.push(expense)
 			})
@@ -104,12 +112,14 @@
     const newCompany = ref('')
     const newType = ref('')
     const newAmount = ref('')
+	const newIsEdit = ref(false)
     
     const addExpense = () => {
 		addDoc(expensesCollectionRef, {
 			company: newCompany.value,
 			type: newType.value,
-			amount: newAmount.value
+			amount: newAmount.value,
+			isEdit: newIsEdit.value
 		})
 	// Clear form after add
 	newCompany.value = ''
@@ -122,18 +132,29 @@
 		deleteDoc(doc(expensesCollectionRef, id))
 	}
 
-	const startEditing = () => {
-		
-	}
-	
-	const endEditing = () => {
-
+	const editExpense = async (expense) => {
+		// console.log(expense);
+		if (expense.id.value === expense.id.value) {
+			expense.isEdit = !expense.isEdit
+			if (!expense.isEdit) {
+				await updateDoc(doc(expensesCollectionRef, expense.id), {
+					amount: expense.amount,
+					company: expense.company,
+					type: expense.type,
+					isEdit: expense.isEdit
+				})
+			}
+		} else {
+			!expense.isEdit == expense.isEdit
+		}
 	}
 
 	const updateExpense = (id) => {
-		console.log(expenses);
+		console.log(id);
 		updateDoc(doc(expensesCollectionRef, id), {
-			type: id
+			company,
+			type,
+			amount
 		})
 	}
 	
