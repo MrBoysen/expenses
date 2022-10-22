@@ -81,6 +81,7 @@
 	import { ref, onMounted } from 'vue'
 	import { collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 	import { db } from '@/firebase'
+import { slotFlagsText } from '@vue/shared';
 
 	// Firebase refs
 	const expensesCollectionRef = collection(db, 'expenses')
@@ -105,6 +106,15 @@
 				fbExpenses.push(expense)
 			})
 			expenses.value = fbExpenses
+
+			// Get the total of all expenses
+			let sumAmount = 0
+			expenses.value.forEach((item, index) => {
+				// sumAmount.push(item.amount)
+				sumAmount += item.amount
+			}) 
+			console.log(sumAmount);
+			// const sumAmount = Amount.reduce((a, b) => a + b, 0)
 		})
 	})
 	
@@ -118,7 +128,7 @@
 		addDoc(expensesCollectionRef, {
 			company: newCompany.value,
 			type: newType.value,
-			amount: newAmount.value,
+			amount: parseInt(newAmount.value),
 			isEdit: newIsEdit.value
 		})
 	// Clear form after add
