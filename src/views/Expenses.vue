@@ -1,22 +1,23 @@
 <template>
 	<div class="expenses-app">
-	<form
-	class="columns"
-	@submit.prevent=""
-	>
-	<!-- Add filter to this input field -->
-		<div class="column is-half is-offset-one-quarter">
-			<input
-			class="input field"
-			type="text"
-			placeholder="Search (Not active yet)">
-		</div>
-	</form> 
-		<h1  @click="hiddenExpenses = !hiddenExpenses">Expenses</h1>
 		<form
-		v-if="!hiddenExpenses"
-		@submit.prevent="addExpense"
-		class="columns">
+		class="columns"
+		@submit.prevent=""
+		>
+		<!-- Add filter to this input field -->
+			<div class="column is-half is-offset-one-quarter">
+				<input
+				class="input field"
+				type="text"
+				placeholder="Search (Not active yet)">
+			</div>
+		</form> 
+		<div></div>
+			<h1 class="add" @click="hiddenExpenses = !hiddenExpenses">Expenses</h1>
+		<form
+			v-if="!hiddenExpenses"
+			@submit.prevent="addExpense"
+			class="columns">
 			<div class="column is-half is-offset-one-quarter">
 				<input
 				v-model="newCompany"
@@ -41,100 +42,155 @@
 				</div>
 			</div>
 		</form>
-	
-	<div v-for="expense in expenses" :key="expense.id" class="card mb-3">
-		<div class="card-content level">
-			<div class="content level-item">
-				<div class="column" v-if="!expense.isEdit">
-					{{ expense.company }}
+		<div class="card mb-3">
+			<div class="card">
+				<div class="column"><b>Total: {{ totalCost }} SEK</b></div>
+				<div class="card-content level">
+					<div class="content level-item">
+						<div class="column"><b><u>Datum</u></b></div>
+						<div class="column"><b><u>Företag</u></b></div>
+						<div class="column"><b><u>Typ</u></b></div>
+						<div class="column"><b><u>Pris</u></b></div>
+						<div class="column"></div>
+					</div>
 				</div>
-				<div class="column" v-else>
-					<input v-model="expense.company" type="text"/>
-				</div>
-				<div class="column" v-if="!expense.isEdit">
-					{{ expense.type }}
-				</div>
-				<div class="column" v-else>
-					<input v-model="expense.type" type="text">
-				</div>
-				<div class="column" v-if="!expense.isEdit">
-					{{ expense.amount }} Kr
-				</div>
-				<div class="column" v-else>
-					<input v-model="expense.amount" type="text">
-				</div>
-				<div class="column has-text-right">
-					<button
-					@click="editExpense(expense, id)"
-					class="button is-info mr-2">&dash;</button>
-					<button
-					@click="deleteExpense(expense.id)"
-					class="button is-danger">&cross;</button>
+			</div>
+			<div v-for="expense in filteredExpenses" :key="expense.id" class="card-content ">
+				<div class="content level-item">
+					<div class="column" v-if="!expense.isEdit">
+						{{ expense.createdAt }}
+					</div>
+					<div class="column" v-if="!expense.isEdit">
+						{{ expense.company }}
+					</div>
+					<div class="column" v-else>
+						<input v-model="expense.company" type="text"/>
+					</div>
+					<div class="column" v-if="!expense.isEdit">
+						{{ expense.type }}
+					</div>
+					<div class="column" v-else>
+						<input v-model="expense.type" type="text">
+					</div>
+					<div class="column" v-if="!expense.isEdit">
+						{{ expense.amount }} Kr
+					</div>
+					<div class="column" v-else>
+						<input v-model="expense.amount" type="text">
+					</div>
+					<div class="column has-text-right">
+						<button
+						@click="editExpense(expense, id)"
+						class="button is-success mr-2">&star;</button>
+						<button
+						@click="editExpense(expense, id)"
+						class="button is-info mr-2">&dash;</button>
+						<button
+						@click="deleteExpense(expense.id)"
+						class="button is-danger">&cross;</button>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-</div>
 </template>
 
 <script setup>
-	import { ref, onMounted } from 'vue'
+	import { ref, onMounted, onBeforeUpdate, onUpdated, onBeforeMount } from 'vue'
 	import { collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
+	import { getAuth, onAuthStateChanged } from 'firebase/auth'
 	import { db } from '@/firebase'
-import { slotFlagsText } from '@vue/shared';
+	import { getCurrentUser } from '../router';
+	import moment from 'moment'
+
 
 	// Firebase refs
 	const expensesCollectionRef = collection(db, 'expenses')
-	
-	const hiddenExpenses = ref(true)
 
+	const hiddenExpenses = ref(true)
+	
 	// Expenses
 	const expenses = ref([])
-
+	const filteredExpenses = ref([])
+	const totalCost = ref([])
+	
 	// Get Expenses
-	onMounted(() => {
-		onSnapshot(expensesCollectionRef, (querySnapshot) => {
+	onMounted(async () => {
+		// const user = await getCurrentUser()
+		// console.log(user);
+
+		onSnapshot(expensesCollectionRef, async (querySnapshot) => {
+			const user = await getCurrentUser()
 			const fbExpenses = []
 			querySnapshot.forEach((doc) => {
-				const expense = {
-					id: doc.id,
-					company: doc.data().company,
-					type: doc.data().type,
-					amount: doc.data().amount,
-					isEdit: doc.data().isEdit
-				}
-				fbExpenses.push(expense)
+					const expense = {
+						id: doc.id,
+						company: doc.data().company,
+						type: doc.data().type,
+						amount: doc.data().amount,
+						isEdit: doc.data().isEdit,
+						userid: doc.data().userid,
+						createdAt: doc.data().createdAt
+					}
+					fbExpenses.push(expense)
 			})
 			expenses.value = fbExpenses
 
-			// Get the total of all expenses
-			let sumAmount = 0
+			const fExpenses = []
 			expenses.value.forEach((item, index) => {
-				// sumAmount.push(item.amount)
-				sumAmount += item.amount
-			}) 
-			console.log(sumAmount);
-			// const sumAmount = Amount.reduce((a, b) => a + b, 0)
+				if (item.userid === user.uid) {
+					const expense = {
+						id: item.id,
+						company: item.company,
+						type: item.type,
+						amount: item.amount,
+						isEdit: item.isEdit,
+						createdAt: item.createdAt
+					}
+					fExpenses.push(expense)
+				}
+			})
+			filteredExpenses.value = fExpenses
 		})
 	})
-	
-    // Add Expense
-    const newCompany = ref('')
-    const newType = ref('')
-    const newAmount = ref('')
+
+	onUpdated(() => {
+		// Get the total of all expenses
+		const cost = []
+
+		filteredExpenses.value.forEach((item, index) => {
+			cost.push(item.amount)
+		}) 
+
+		const sumCost = cost.reduce((a, b) => a + b, 0)
+
+		totalCost.value = sumCost
+
+	})
+
+	// Add Expense
+	const newCompany = ref('')
+	const newType = ref('')
+	const newAmount = ref('')
 	const newIsEdit = ref(false)
     
-    const addExpense = () => {
+	const addExpense = async () => {
+		const user = await getCurrentUser()
 		addDoc(expensesCollectionRef, {
 			company: newCompany.value,
 			type: newType.value,
 			amount: parseInt(newAmount.value),
-			isEdit: newIsEdit.value
+			isEdit: newIsEdit.value,
+			userid: user.uid,
+			createdAt: moment().format('D MMM, YYYY'),
+			recurring: true,
+			interval: 0
+			
 		})
-	// Clear form after add
-	newCompany.value = ''
-	newType.value = ''
-	newAmount.value = ''
+		// Clear form after add
+		newCompany.value = ''
+		newType.value = ''
+		newAmount.value = ''
 	}
 
 	// Delete Expense
@@ -148,7 +204,7 @@ import { slotFlagsText } from '@vue/shared';
 			expense.isEdit = !expense.isEdit
 			if (!expense.isEdit) {
 				await updateDoc(doc(expensesCollectionRef, expense.id), {
-					amount: expense.amount,
+					amount: parseInt(expense.amount),
 					company: expense.company,
 					type: expense.type,
 					isEdit: expense.isEdit
@@ -159,15 +215,6 @@ import { slotFlagsText } from '@vue/shared';
 		}
 	}
 
-	const updateExpense = (id) => {
-		console.log(id);
-		updateDoc(doc(expensesCollectionRef, id), {
-			company,
-			type,
-			amount
-		})
-	}
-	
 </script>
 
 
@@ -176,5 +223,13 @@ h1 {
 	text-align: center;
 	font-size: 2rem;
 	font-weight: 700;
+}
+
+.add:hover {
+	cursor: pointer;
+}
+
+.card-content {
+	padding: 0;
 }
 </style>

@@ -29,13 +29,14 @@
 	import { db } from '@/firebase'
 	import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 	import { useRouter, useRoute } from 'vue-router'
+	import { def } from '@vue/shared';
 	
-	const router = useRouter()
-	const route = useRoute()
+const router = useRouter()
+const route = useRoute()
 
-	let auth
-	onMounted(() => {
-		auth = getAuth()
+let auth
+onMounted(() => {
+	auth = getAuth()
 	onAuthStateChanged(auth, (user) => {
 		if (user) {
 			isLoggedIn.value = true
@@ -44,13 +45,15 @@
 			isLoggedIn.value = false
 		}
 	})
-	})
+})
+
+	
 	// Logout
 	const isLoggedIn = ref(false)
 	const handleSignOut = () => {
 		signOut(auth).then(() => {
 			router.push('/signin')
-	})
+		})
 	}
 
 
