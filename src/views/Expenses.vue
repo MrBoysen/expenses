@@ -5,14 +5,33 @@
 		@submit.prevent=""
 		>
 		<!-- Add filter to this input field -->
-			<div class="column is-half is-offset-one-quarter">
-				<input
-				class="input field"
-				type="text"
-				placeholder="Search (Not active yet)">
-			</div>
-		</form> 
-		<div></div>
+		<div class="column is-half is-offset-one-quarter">
+			<input
+			class="input field"
+			type="text"
+			placeholder="Search (Not active yet)">
+		</div>
+	</form>
+	<div></div>
+	<Teleport to="body">
+		<modal :show="showModal" @close="showModal = false" class="modal" id="modal">
+			
+		</modal>
+	</Teleport>
+		<div class="columns">
+			<div class="column">Jan</div>
+			<div class="column">Feb</div>
+			<div class="column">Mar</div>
+			<div class="column">Apr</div>
+			<div class="column">May</div>
+			<div class="column">Jun</div>
+			<div class="column">Jul</div>
+			<div class="column">Aug</div>
+			<div class="column">Sep</div>
+			<div class="column">Oct</div>
+			<div class="column">Nov</div>
+			<div class="column">Dec</div>
+		</div>
 			<h1 class="add" @click="hiddenExpenses = !hiddenExpenses">Expenses</h1>
 		<form
 			v-if="!hiddenExpenses"
@@ -47,10 +66,10 @@
 				<div class="column"><b>Total: {{ totalCost }} SEK</b></div>
 				<div class="card-content level">
 					<div class="content level-item">
-						<div class="column"><b><u>Datum</u></b></div>
-						<div class="column"><b><u>Företag</u></b></div>
-						<div class="column"><b><u>Typ</u></b></div>
-						<div class="column"><b><u>Pris</u></b></div>
+						<div class="column"><b><u>Date</u></b></div>
+						<div class="column"><b><u>Company</u></b></div>
+						<div class="column"><b><u>Type</u></b></div>
+						<div class="column"><b><u>Amount</u></b></div>
 						<div class="column"></div>
 					</div>
 				</div>
@@ -58,6 +77,9 @@
 			<div v-for="expense in filteredExpenses" :key="expense.id" class="card-content ">
 				<div class="content level-item">
 					<div class="column" v-if="!expense.isEdit">
+						{{ expense.createdAt }}
+					</div>
+					<div class="column" v-else>
 						{{ expense.createdAt }}
 					</div>
 					<div class="column" v-if="!expense.isEdit">
@@ -79,12 +101,12 @@
 						<input v-model="expense.amount" type="text">
 					</div>
 					<div class="column has-text-right">
+						<button :class="{active: expense.recurring}"
+						@click="makeRecurring(expense, id)"
+						class="button mr-2">&star;</button>
 						<button
 						@click="editExpense(expense, id)"
-						class="button is-success mr-2">&star;</button>
-						<button
-						@click="editExpense(expense, id)"
-						class="button is-info mr-2">&dash;</button>
+						class="button is-info is-focused mr-2">&#9998;</button>
 						<button
 						@click="deleteExpense(expense.id)"
 						class="button is-danger">&cross;</button>
@@ -102,7 +124,9 @@
 	import { db } from '@/firebase'
 	import { getCurrentUser } from '../router';
 	import moment from 'moment'
+	import Modal from './RecurrenceModal.vue'
 
+	const showModal = ref(false)
 
 	// Firebase refs
 	const expensesCollectionRef = collection(db, 'expenses')
@@ -130,7 +154,8 @@
 						amount: doc.data().amount,
 						isEdit: doc.data().isEdit,
 						userid: doc.data().userid,
-						createdAt: doc.data().createdAt
+						createdAt: doc.data().createdAt,
+						recurring: doc.data().recurring
 					}
 					fbExpenses.push(expense)
 			})
@@ -145,7 +170,9 @@
 						type: item.type,
 						amount: item.amount,
 						isEdit: item.isEdit,
-						createdAt: item.createdAt
+						userid: item.userid,
+						createdAt: item.createdAt,
+						recurring: item.recurring
 					}
 					fExpenses.push(expense)
 				}
@@ -173,7 +200,7 @@
 	const newType = ref('')
 	const newAmount = ref('')
 	const newIsEdit = ref(false)
-    
+	
 	const addExpense = async () => {
 		const user = await getCurrentUser()
 		addDoc(expensesCollectionRef, {
@@ -192,14 +219,13 @@
 		newType.value = ''
 		newAmount.value = ''
 	}
-
+	
 	// Delete Expense
 	const deleteExpense = id => {
 		deleteDoc(doc(expensesCollectionRef, id))
 	}
-
+	
 	const editExpense = async (expense) => {
-		// console.log(expense);
 		if (expense.id.value === expense.id.value) {
 			expense.isEdit = !expense.isEdit
 			if (!expense.isEdit) {
@@ -210,11 +236,31 @@
 					isEdit: expense.isEdit
 				})
 			}
-		} else {
-			!expense.isEdit == expense.isEdit
 		}
 	}
 
+	const makeRecurring = (expense) => {
+		if (expense.id.value === expense.id.value) {
+			if(expense.recurring) {
+				updateDoc(doc(expensesCollectionRef, expense.id), {
+					recurring: false
+				})
+			} else {
+				updateDoc(doc(expensesCollectionRef, expense.id), {
+					recurring: true
+				})
+				showModal.value = true
+			}
+		}
+	}
+
+	// const setInterval = (expense) => {
+	// 	if (expense.id.value === expense.id.value) {
+	// 		updateDoc(doc(expensesCollectionRef, expense.id), {
+	// 			interval: 12
+	// 		})
+	// 	}
+	// }
 </script>
 
 
@@ -231,5 +277,14 @@ h1 {
 
 .card-content {
 	padding: 0;
+}
+
+.active {
+	background-color: #32b85a;
+	box-shadow: 0 0 0 0.125em #32b85a;
+}
+.active:hover {
+	background-color: #32b85a;
+	box-shadow: 0 0 0 0.125em #32b85a;
 }
 </style>
