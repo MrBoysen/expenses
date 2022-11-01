@@ -1,21 +1,43 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { async } from '@firebase/util'
+import HomeView from '../views/Home.vue'
+import ExpensesView from '../views/Expenses.vue'
+import RegisterView from '../views/Register.vue'
+import SigninView from '../views/SignIn.vue'
+import SettingsView from '../views/Settings.vue'
 
 const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
             path: '/', 
-            component: () => import('../views/Home.vue'),
+            name: 'home',
+            component: HomeView,
             meta: {
                 requiresAuth: true,
             }
         },
-        { path: '/expenses', component: () => import('../views/Expenses.vue')},
-        { path: '/register', component: () => import('../views/Register.vue')},
-        { path: '/signin', component: () => import('../views/SignIn.vue')},
-        { path: '/settings', component: () => import('../views/Settings.vue')}
+        { 
+            path: '/expenses', 
+            name: 'expenses',
+            component: ExpensesView
+        },
+        { 
+            path: '/register', 
+            name: 'register',
+            component: RegisterView
+        },
+        { 
+            path: '/signin', 
+            name: 'signin',
+            component: SigninView
+        },
+        { 
+            path: '/settings', 
+            name: 'settings',
+            component: SettingsView
+        }
     ]
 })
 
