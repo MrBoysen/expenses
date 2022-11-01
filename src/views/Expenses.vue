@@ -15,7 +15,7 @@
 	<div></div>
 	<Teleport to="body">
 		<modal :show="showModal" @close="showModal = false" class="modal" id="modal">
-			
+	
 		</modal>
 	</Teleport>
 		<div class="columns">
@@ -124,8 +124,9 @@
 	import { db } from '@/firebase'
 	import { getCurrentUser } from '../router';
 	import moment from 'moment'
-	import Modal from './RecurrenceModal.vue'
+	import Modal from '../components/RecurrenceModal.vue'
 
+	// Modals
 	const showModal = ref(false)
 
 	// Firebase refs
@@ -140,9 +141,6 @@
 	
 	// Get Expenses
 	onMounted(async () => {
-		// const user = await getCurrentUser()
-		// console.log(user);
-
 		onSnapshot(expensesCollectionRef, async (querySnapshot) => {
 			const user = await getCurrentUser()
 			const fbExpenses = []
@@ -153,6 +151,7 @@
 						type: doc.data().type,
 						amount: doc.data().amount,
 						isEdit: doc.data().isEdit,
+						interval: doc.data().interval,
 						userid: doc.data().userid,
 						createdAt: doc.data().createdAt,
 						recurring: doc.data().recurring
@@ -160,7 +159,7 @@
 					fbExpenses.push(expense)
 			})
 			expenses.value = fbExpenses
-
+			// Filter expenses to match logged in user
 			const fExpenses = []
 			expenses.value.forEach((item, index) => {
 				if (item.userid === user.uid) {
@@ -170,6 +169,7 @@
 						type: item.type,
 						amount: item.amount,
 						isEdit: item.isEdit,
+						interval: item.interval,
 						userid: item.userid,
 						createdAt: item.createdAt,
 						recurring: item.recurring
@@ -181,18 +181,14 @@
 		})
 	})
 
+	// Get the total of all expenses
 	onUpdated(() => {
-		// Get the total of all expenses
 		const cost = []
-
 		filteredExpenses.value.forEach((item, index) => {
 			cost.push(item.amount)
 		}) 
-
 		const sumCost = cost.reduce((a, b) => a + b, 0)
-
 		totalCost.value = sumCost
-
 	})
 
 	// Add Expense
@@ -212,7 +208,6 @@
 			createdAt: moment().format('D MMM, YYYY'),
 			recurring: true,
 			interval: 0
-			
 		})
 		// Clear form after add
 		newCompany.value = ''
@@ -225,6 +220,7 @@
 		deleteDoc(doc(expensesCollectionRef, id))
 	}
 	
+	// Edit Expense
 	const editExpense = async (expense) => {
 		if (expense.id.value === expense.id.value) {
 			expense.isEdit = !expense.isEdit
@@ -239,6 +235,7 @@
 		}
 	}
 
+	// Set Recurring
 	const makeRecurring = (expense) => {
 		if (expense.id.value === expense.id.value) {
 			if(expense.recurring) {
