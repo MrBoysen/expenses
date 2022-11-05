@@ -4,11 +4,10 @@
 			<div class="modal-wrapper" @click="setInterval()">
 				<div class="modal-container" @click.stop="">
 					<div class="modal-header title">
-						<div class="title">Set bill recurrence</div>
-						<button @click="setInterval()" class="modal-default-button">&cross;</button>
+						<slot name="header" />
 					</div>
 					<div class="modal-body">
-						<input v-model="interval" class="input" type="text" placeholder="Number of month per year 12, 6, 3, 1">
+						<slot name="body" />
 					</div>
 				</div>
 			</div>
@@ -20,13 +19,6 @@
 import { ref, onMounted } from 'vue'
 import { collection, doc, updateDoc, onSnapshot } from 'firebase/firestore'
 import { db } from '@/firebase'
-import { getCurrentUser } from '../router';
-
-
-const expensesCollectionRef = collection(db, 'expenses')
-
-const expenses = ref([])
-const filteredExpenses = ref([])
 
 const props = defineProps({
   show: Boolean
@@ -35,64 +27,9 @@ const emit = defineEmits([
 	'close'
 ])
 
-const interval = ref('')
-
-onMounted(async () => {
-		onSnapshot(expensesCollectionRef, async (querySnapshot) => {
-			const user = await getCurrentUser()
-			const fbExpenses = []
-			querySnapshot.forEach((doc) => {
-					const expense = {
-						id: doc.id,
-						company: doc.data().company,
-						type: doc.data().type,
-						amount: doc.data().amount,
-						isEdit: doc.data().isEdit,
-						interval: doc.data().interval,
-						userid: doc.data().userid,
-						createdAt: doc.data().createdAt,
-						recurring: doc.data().recurring
-					}
-					fbExpenses.push(expense)
-			})
-			expenses.value = fbExpenses
-			// Filter expenses to match logged in user
-			const fExpenses = []
-			expenses.value.forEach((item, index) => {
-				if (item.userid === user.uid) {
-					const expense = {
-						id: item.id,
-						company: item.company,
-						type: item.type,
-						amount: item.amount,
-						isEdit: item.isEdit,
-						interval: item.interval,
-						userid: item.userid,
-						createdAt: item.createdAt,
-						recurring: item.recurring
-					}
-					fExpenses.push(expense)
-				}
-			})
-			filteredExpenses.value = fExpenses
-		})
-	})
-
 const setInterval = (expense) => {
-	// await console.log(filteredExpenses.value);
 	emit('close')
-	filteredExpenses.value.forEach((item) => {
-		if (item.id === item.id) {
-			console.log(item);
-			updateDoc(doc(expensesCollectionRef, item.id), {
-				interval: interval.value
-			})
-		}
-	})
 }
-
-
-
 </script>
 
 

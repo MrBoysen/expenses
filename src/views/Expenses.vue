@@ -13,24 +13,19 @@
 		</div>
 	</form>
 	<div></div>
-	<Teleport to="body">
-		<modal :show="showModal" @close="showModal = false" class="modal" id="modal">
-	
-		</modal>
-	</Teleport>
 		<div class="columns">
-			<div class="column">Jan</div>
-			<div class="column">Feb</div>
-			<div class="column">Mar</div>
-			<div class="column">Apr</div>
-			<div class="column">May</div>
-			<div class="column">Jun</div>
-			<div class="column">Jul</div>
-			<div class="column">Aug</div>
-			<div class="column">Sep</div>
-			<div class="column">Oct</div>
-			<div class="column">Nov</div>
-			<div class="column">Dec</div>
+			<button class="month-btn column">Jan</button>
+			<button class="month-btn column">Feb</button>
+			<button class="month-btn column">Mar</button>
+			<button class="month-btn column">Apr</button>
+			<button class="month-btn column">May</button>
+			<button class="month-btn column">Jun</button>
+			<button class="month-btn column">Jul</button>
+			<button class="month-btn column">Aug</button>
+			<button class="month-btn column">Sep</button>
+			<button class="month-btn column">Oct</button>
+			<button class="month-btn column">Nov</button>
+			<button class="month-btn column">Dec</button>
 		</div>
 			<h1 class="add" @click="hiddenExpenses = !hiddenExpenses">Expenses</h1>
 		<form
@@ -49,9 +44,9 @@
 				type="text"
 				placeholder="Type">
 				<input
-				v-model="newAmount"
+				v-model.number="newAmount"
 				class="input field"
-				type="text"
+				type="number"
 				placeholder="Amount">
 				<div class="level-item">
 					<button @click="addExpense"
@@ -98,7 +93,7 @@
 						{{ expense.amount }} Kr
 					</div>
 					<div class="column" v-else>
-						<input v-model="expense.amount" type="text">
+						<input v-model.number="expense.amount" type="number">
 					</div>
 					<div class="column has-text-right">
 						<button :class="{active: expense.recurring}"
@@ -110,6 +105,17 @@
 						<button
 						@click="deleteExpense(expense.id)"
 						class="button is-danger">&cross;</button>
+						<Teleport to="body">
+							<Modal :show="showModal" @close="showModal = false" class="modal" id="modal">
+								<template #header>
+									<div class="title">Set bill recurrence</div>
+									<button @click="setInterval(expense, id)" class="modal-default-button">&cross;</button>
+								</template>
+								<template #body>
+									<input v-model.number="interval" class="input" type="text" placeholder="Number of month per year 12, 6, 3, 1">
+								</template>
+							</Modal>
+						</Teleport>
 					</div>
 				</div>
 			</div>
@@ -118,13 +124,17 @@
 </template>
 
 <script setup>
-	import { ref, onMounted, onBeforeUpdate, onUpdated, onBeforeMount } from 'vue'
+	import { ref, onMounted, onUpdated} from 'vue'
 	import { collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 	import { getAuth, onAuthStateChanged } from 'firebase/auth'
 	import { db } from '@/firebase'
 	import { getCurrentUser } from '../router';
 	import moment from 'moment'
 	import Modal from '../components/RecurrenceModal.vue'
+
+	const emit = defineEmits([
+		'close'
+	])
 
 	// Modals
 	const showModal = ref(false)
@@ -237,6 +247,7 @@
 
 	// Set Recurring
 	const makeRecurring = (expense) => {
+		console.log(expense.id);
 		if (expense.id.value === expense.id.value) {
 			if(expense.recurring) {
 				updateDoc(doc(expensesCollectionRef, expense.id), {
@@ -251,13 +262,15 @@
 		}
 	}
 
-	// const setInterval = (expense) => {
-	// 	if (expense.id.value === expense.id.value) {
-	// 		updateDoc(doc(expensesCollectionRef, expense.id), {
-	// 			interval: 12
-	// 		})
-	// 	}
-	// }
+	const interval = ref('')
+
+	const setInterval = async (expense) => {
+		showModal.value = !showModal.value
+
+		await updateDoc(doc(expensesCollectionRef, expense.id), {
+			interval: interval.value
+		})
+}
 </script>
 
 
@@ -266,6 +279,10 @@ h1 {
 	text-align: center;
 	font-size: 2rem;
 	font-weight: 700;
+}
+
+a {
+	color: #4a4a4a;
 }
 
 .add:hover {
@@ -283,5 +300,30 @@ h1 {
 .active:hover {
 	background-color: #32b85a;
 	box-shadow: 0 0 0 0.125em #32b85a;
+}
+
+.month-btn {
+	text-decoration: none;
+	border: 0;
+	background-color: white;
+	cursor: pointer;
+}
+
+.modal-header .modal-default-button {
+	cursor: pointer;
+	border: none;
+	outline: none;
+	background: none;
+	font-size: 1.25rem;
+	font-weight: bold;
+}
+
+.modal-header .title{
+  color: #42b983;
+	margin: 0;
+}
+
+.modal-body {
+  margin: 20px 0;
 }
 </style>
