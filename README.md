@@ -1,29 +1,10 @@
 # vue-expenses
 
-This template should help get you started developing with Vue 3 in Vite.
+Site: https://expenses-98275.web.app/expenses
 
-## Recommended IDE Setup
+## Issue
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+The input in the modal changes the last interval for the last array item.
+I want it to change the one you click on like the edit and delete.
 
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
+views/expenses.vue line 112 and 268 the the call and function

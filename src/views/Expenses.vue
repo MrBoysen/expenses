@@ -106,13 +106,13 @@
 						@click="deleteExpense(expense.id)"
 						class="button is-danger">&cross;</button>
 						<Teleport to="body">
-							<Modal :show="showModal" @close="showModal = false" class="modal" id="modal">
+							<Modal :show="showModal" @close="showModal = false" class="modal" id="modal" :key="expense.id">
 								<template #header>
 									<div class="title">Set bill recurrence</div>
-									<button @click="setInterval(expense, id)" class="modal-default-button">&cross;</button>
+									<button @click="setInterval(expense, id)" :key="expense.id" class="modal-default-button">&cross;</button>
 								</template>
 								<template #body>
-									<input v-model.number="interval" class="input" type="text" placeholder="Number of month per year 12, 6, 3, 1">
+									<input v-model.number="interval" :key="expense.id" class="input" type="number" placeholder="Number of month per year 12, 6, 3, 1">
 								</template>
 							</Modal>
 						</Teleport>
@@ -143,6 +143,9 @@
 	const expensesCollectionRef = collection(db, 'expenses')
 
 	const hiddenExpenses = ref(true)
+
+	const interval = ref('')
+
 	
 	// Expenses
 	const expenses = ref([])
@@ -247,7 +250,6 @@
 
 	// Set Recurring
 	const makeRecurring = (expense) => {
-		console.log(expense.id);
 		if (expense.id.value === expense.id.value) {
 			if(expense.recurring) {
 				updateDoc(doc(expensesCollectionRef, expense.id), {
@@ -261,15 +263,18 @@
 			}
 		}
 	}
-
-	const interval = ref('')
-
+	
+	
 	const setInterval = async (expense) => {
+		console.log(expense.id);
 		showModal.value = !showModal.value
 
 		await updateDoc(doc(expensesCollectionRef, expense.id), {
 			interval: interval.value
 		})
+		console.log(expense.id);
+
+		interval.value = ''
 }
 </script>
 
